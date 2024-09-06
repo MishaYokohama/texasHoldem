@@ -8,6 +8,8 @@ export interface Player {
   hand: Hand;
   bet: number;
   folded: boolean;
+  isBot: boolean;
+  isAllIn: boolean;
 }
 
 const cardValues: { [key: string]: number } = {
