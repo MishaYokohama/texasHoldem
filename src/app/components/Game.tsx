@@ -40,6 +40,9 @@ const Game: React.FC = () => {
     }
   }, [currentPlayerIndex, currentRound, gameOver, players]);
 
+
+// //Инициализирует новую игру, создавая новую колоду, раздавая карты игрокам и устанавливая начальные значения для всех игровых состояний.
+// 新しいゲームを初期化し、新しいデッキを作成し、プレイヤーにカードを配り、すべてのゲーム状態の初期値を設定します。
   const initializeGame = () => {
     const newDeck = shuffleDeck(createDeck());
     setDeck(newDeck);
@@ -64,7 +67,9 @@ const Game: React.FC = () => {
     setGameOver(false);
   };
 
-  // Продолжение следует...
+
+// Раздает карты игрокам, устанавливает блайнды и сбрасывает состояния фолда и олл-ина.
+// プレイヤーにカードを配り、ブラインドを設定し、フォールドとオールインの状態をリセットします。
   const dealCards = (players: PlayerType[], deck: Card[]) => {
     players.forEach((player, index) => {
       player.hand = [deck.pop()!, deck.pop()!];
@@ -84,38 +89,37 @@ const Game: React.FC = () => {
     });
   };
 
-  const handlePlayerAction = (playerId: number, action: string, amount: number) => {
-    setPlayers(prevPlayers => {
-      const newPlayers = [...prevPlayers];
-      const playerIndex = newPlayers.findIndex(p => p.id === playerId);
-      if (playerIndex === -1) return newPlayers;
+// Обрабатывает действия игрока (фолд, колл, рейз, олл-ин), обновляет состояние игры и переходит к следующему игроку или раунду.
+// プレイヤーのアクション（フォールド、コール、レイズ、オールイン）を処理し、ゲーム状態を更新し、次のプレイヤーまたはラウンドに進みます。
+const handlePlayerAction = (playerId: number, action: string, amount: number) => {
+  setPlayers(prevPlayers => {
+    const newPlayers = [...prevPlayers];
+    const playerIndex = newPlayers.findIndex(p => p.id === playerId);
+    if (playerIndex === -1) return newPlayers;
 
-      const player = newPlayers[playerIndex];
-      const maxBet = Math.max(...newPlayers.map(p => p.bet));
+    const player = newPlayers[playerIndex];
+    const maxBet = Math.max(...newPlayers.map(p => p.bet));
+    const minRaise = Math.max(BIG_BLIND * 2, maxBet * 2);
 
-      switch (action) {
-        case 'fold':
-          player.folded = true;
-          break;
-        case 'call':
-        case 'raise':
-        case 'allIn':
-          const betAmount = action === 'allIn' ? player.chips : Math.min(amount, player.chips);
-          if (betAmount + player.bet >= maxBet) {
-            const actualBet = Math.min(betAmount, maxBet - player.bet);
-            player.chips -= actualBet;
-            player.bet += actualBet;
-            if (player.chips === 0) {
-              player.isAllIn = true;
-              createSidePots(newPlayers);
-            }
-          } else {
-            player.isAllIn = true;
-            player.bet += player.chips;
-            player.chips = 0;
-            createSidePots(newPlayers);
-          }
-          break;
+    switch (action) {
+      case 'fold':
+        player.folded = true;
+        break;
+      case 'call':
+        const callAmount = Math.min(maxBet - player.bet, player.chips);
+        player.chips -= callAmount;
+        player.bet += callAmount;
+        break;
+      case 'raise':
+        if (amount < minRaise || amount > player.chips) return newPlayers;
+        player.chips -= amount - player.bet;
+        player.bet = amount;
+        break;
+      case 'allIn':
+        player.bet += player.chips;
+        player.chips = 0;
+        player.isAllIn = true;
+        break;
       }
 
       const activePlayers = newPlayers.filter(p => !p.folded && !p.isAllIn);
@@ -132,6 +136,8 @@ const Game: React.FC = () => {
     });
   };
 
+// Находит следующего активного игрока, пропуская тех, кто сбросил карты или в олл-ине.
+// フォールドしたプレイヤーやオールインしたプレイヤーをスキップして、次のアクティブなプレイヤーを見つけます。
   const findNextActivePlayer = (players: PlayerType[], currentIndex: number): number => {
     let nextIndex = (currentIndex + 1) % players.length;
     let count = 0;
@@ -142,6 +148,8 @@ const Game: React.FC = () => {
     return count === players.length ? -1 : nextIndex;
   };
 
+// Проверяет, завершен ли текущий раунд торговли.
+// 現在のベッティングラウンドが完了したかどうかをチェックします。
   const isRoundComplete = (players: PlayerType[], lastActionIndex: number): boolean => {
     const activePlayers = players.filter(p => !p.folded && !p.isAllIn && p.chips > 0);
     const maxBet = Math.max(...activePlayers.map(p => p.bet));
@@ -149,7 +157,8 @@ const Game: React.FC = () => {
            (lastActionIndex === dealerIndex || players[dealerIndex].folded || players[dealerIndex].isAllIn || players[dealerIndex].chips === 0);
   };
 
-  // Продолжение следует...
+// Создает сайд-поты, когда один или несколько игроков находятся в олл-ине.
+// 1人以上のプレイヤーがオールインの場合にサイドポットを作成します。
   const createSidePots = (players: PlayerType[]) => {
     const sortedPlayers = [...players].sort((a, b) => a.bet - b.bet);
     const newSidePots: {amount: number, players: number[]}[] = [];
@@ -168,6 +177,8 @@ const Game: React.FC = () => {
     setSidePots(newSidePots.slice(1));
   };
 
+  // Переводит игру к следующему раунду, открывая общие карты и сбрасывая ставки.
+  // コミュニティカードを公開し、ベットをリセットして、ゲームを次のラウンドに進めます。
   const progressRound = (currentPlayers: PlayerType[]) => {
     switch (currentRound) {
       case 'preflop':
@@ -191,23 +202,25 @@ const Game: React.FC = () => {
     setCurrentPlayerIndex(findNextActivePlayer(currentPlayers, dealerIndex));
   };
 
+// Сбрасывает ставки всех игроков в начале нового раунда.
+// 新しいラウンドの開始時に全プレイヤーのベットをリセットします。
   const resetBets = (players: PlayerType[]) => {
     setPlayers(players.map(player => ({ ...player, bet: 0 })));
   };
 
+// Завершает текущую раздачу, определяет победителей и распределяет выигрыш.
+// 勝者を決定し、賞金を分配します。
   const endHand = (currentPlayers: PlayerType[]) => {
     const activePlayers = currentPlayers.filter(p => !p.folded);
     let winners: PlayerType[] = [];
     let winAmount = 0;
 
-    // Распределение основного пота
     winners = determineWinner(activePlayers, communityCards);
     winAmount = Math.floor(mainPot / winners.length);
     winners.forEach(winner => {
       winner.chips += winAmount;
     });
 
-    // Распределение сайд-потов
     sidePots.forEach(sidePot => {
       const eligiblePlayers = activePlayers.filter(p => sidePot.players.includes(p.id));
       const potWinners = determineWinner(eligiblePlayers, communityCards);
@@ -219,7 +232,7 @@ const Game: React.FC = () => {
     });
 
     setWinners(winners);
-    setWinAmount(winAmount);  // Отображаем только выигрыш основного пота для простоты
+    setWinAmount(winAmount);
 
     const updatedPlayers = currentPlayers.map(player => ({
       ...player,
@@ -251,6 +264,8 @@ const Game: React.FC = () => {
     }, 3000);
   };
 
+// Проверяет, закончилась ли игра (когда у игрока-человека закончились фишки или остался только один игрок).
+// ゲームが終了したかどうかをチェックします
   const checkGameOver = (currentPlayers: PlayerType[]) => {
     const humanPlayer = currentPlayers.find(p => !p.isBot);
     if (!humanPlayer || humanPlayer.chips === 0 || currentPlayers.length === 1) {
@@ -260,6 +275,8 @@ const Game: React.FC = () => {
     }
   };
 
+// Начинает новый раунд игры, раздавая новые карты и устанавливая начальные ставки.
+// 新しいカードを配り、初期ベットを設定して、新しいラウンドを開始します。
   const startNewRound = (currentPlayers: PlayerType[]) => {
     const newDeck = shuffleDeck(createDeck());
     setDeck(newDeck);
@@ -272,23 +289,39 @@ const Game: React.FC = () => {
     setCommunityCards([]);
   };
 
+// Определяет действие бота на основе текущей ситуации в игре и случайного фактора.
+// 現在のゲーム状況とランダム要素に基づいてボットのアクションを決定します。
   const decideBotAction = (bot: PlayerType, round: string): { action: string, amount: number } => {
     const maxBet = Math.max(...players.map(p => p.bet));
     const callAmount = Math.min(maxBet - bot.bet, bot.chips);
-    const randomAction = Math.random();
+    const potSize = mainPot + sidePots.reduce((sum, pot) => sum + pot.amount, 0);
+    const randomFactor = Math.random();
 
-    if (bot.chips === callAmount) {
-      return { action: 'allIn', amount: bot.chips };
-    }
+    // Более агрессивные ставки в зависимости от раунда и размера пота
+    const minRaise = Math.max(BIG_BLIND * 2, maxBet * 2);
+    const maxRaise = Math.min(bot.chips, potSize);
+    
+    // Увеличиваем вероятность рейза на более поздних раундах
+    const raiseThreshold = {
+      'preflop': 0.3,
+      'flop': 0.4,
+      'turn': 0.5,
+      'river': 0.6
+    }[round] || 0.3;
 
     if (callAmount === 0) {
-      if (randomAction < 0.7) return { action: 'call', amount: 0 };
-      return { action: 'raise', amount: Math.min(bot.chips, BIG_BLIND * 2) };
+      if (randomFactor < 0.5) return { action: 'check', amount: 0 };
+      const raiseAmount = Math.floor(minRaise + (maxRaise - minRaise) * randomFactor);
+      return { action: 'raise', amount: raiseAmount };
     }
 
-    if (randomAction < 0.2) return { action: 'fold', amount: 0 };
-    if (randomAction < 0.6) return { action: 'call', amount: callAmount };
-    return { action: 'raise', amount: Math.min(bot.chips, callAmount + BIG_BLIND * 2) };
+    if (randomFactor < 0.1) return { action: 'fold', amount: 0 };
+    if (randomFactor < raiseThreshold) return { action: 'call', amount: callAmount };
+    
+    // Более агрессивный рейз
+    const raiseMultiplier = 1 + randomFactor; // от 1 до 2
+    const raiseAmount = Math.floor(Math.min(maxRaise, callAmount * raiseMultiplier + BIG_BLIND * randomFactor * 5));
+  return { action: 'raise', amount: raiseAmount };
   };
 
   return (
@@ -308,7 +341,7 @@ const Game: React.FC = () => {
             isCurrentPlayer={index === currentPlayerIndex}
             onAction={(action, amount) => handlePlayerAction(player.id, action, amount)}
             showCards={currentRound === 'showdown' || !player.isBot}
-            maxBet={Math.max(...players.map(p => p.bet)) - player.bet}
+            maxBet={Math.max(...players.map(p => p.bet))}
           />
         );
       })}

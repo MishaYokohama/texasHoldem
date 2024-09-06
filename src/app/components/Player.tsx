@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import Card from './Card';
+import React, { useState, useEffect } from 'react';
 import { Player as PlayerType } from '../../utils/PokerLogic';
+import Card from './Card';
 
 interface PlayerProps {
   player: PlayerType;
@@ -9,11 +9,27 @@ interface PlayerProps {
   onAction: (action: string, amount: number) => void;
   showCards: boolean;
   maxBet: number;
-  lastAction?: string;
 }
 
-const Player: React.FC<PlayerProps> = ({ player, position, isCurrentPlayer, onAction, showCards, maxBet, lastAction }) => {
-  const [raiseAmount, setRaiseAmount] = useState(0);
+const Player: React.FC<PlayerProps> = ({ player, position, isCurrentPlayer, onAction, showCards, maxBet }) => {
+  const [raiseAmount, setRaiseAmount] = useState(maxBet * 2);
+
+  useEffect(() => {
+    setRaiseAmount(Math.max(maxBet * 2, player.bet * 2));
+  }, [maxBet, player.bet]);
+
+  const handleCall = () => {
+    const callAmount = maxBet - player.bet;
+    onAction('call', callAmount);
+  };
+
+  const handleRaise = () => {
+    onAction('raise', raiseAmount);
+  };
+
+  const handleAllIn = () => {
+    onAction('allIn', player.chips);
+  };
 
   return (
     <div className="absolute transform -translate-x-1/2 -translate-y-1/2" style={{ top: position.top, left: position.left }}>
@@ -26,7 +42,6 @@ const Player: React.FC<PlayerProps> = ({ player, position, isCurrentPlayer, onAc
           </div>
         </div>
         {player.bet > 0 && <div className="text-blue-600 text-sm mb-2">Bet: ${player.bet}</div>}
-        {lastAction && <div className="text-purple-600 text-sm mb-2">Action: {lastAction}</div>}
         <div className="flex justify-center space-x-1 mb-2">
           {player.hand.map((card, index) => (
             <Card key={index} card={showCards ? card : 'back'} />
@@ -36,16 +51,21 @@ const Player: React.FC<PlayerProps> = ({ player, position, isCurrentPlayer, onAc
           <div className="mt-2 flex flex-col items-center">
             <div className="flex space-x-1 mb-2">
               <button onClick={() => onAction('fold', 0)} className="bg-red-500 text-white px-2 py-1 rounded text-sm">Fold</button>
-              <button onClick={() => onAction('call', maxBet)} className="bg-blue-500 text-white px-2 py-1 rounded text-sm">Call</button>
-              <button onClick={() => onAction('raise', raiseAmount)} className="bg-green-500 text-white px-2 py-1 rounded text-sm">Raise</button>
-              <button onClick={() => onAction('allIn', player.chips)} className="bg-yellow-500 text-white px-2 py-1 rounded text-sm">All In</button>
+              <button onClick={handleCall} className="bg-blue-500 text-white px-2 py-1 rounded text-sm">
+                Call ${maxBet - player.bet}
+              </button>
+              <button onClick={handleRaise} className="bg-green-500 text-white px-2 py-1 rounded text-sm">Raise</button>
+              <button onClick={handleAllIn} className="bg-yellow-500 text-white px-2 py-1 rounded text-sm">All In</button>
             </div>
             <input
-              type="number"
+              type="range"
+              min={Math.max(maxBet * 2, player.bet * 2)}
+              max={player.chips}
               value={raiseAmount}
-              onChange={(e) => setRaiseAmount(Math.min(player.chips, Math.max(maxBet, parseInt(e.target.value) || 0)))}
-              className="w-full px-2 py-1 rounded text-sm"
+              onChange={(e) => setRaiseAmount(parseInt(e.target.value))}
+              className="w-full"
             />
+            <span>Raise: ${raiseAmount}</span>
           </div>
         )}
         {player.folded && <div className="text-red-500 font-bold mt-2">Folded</div>}
