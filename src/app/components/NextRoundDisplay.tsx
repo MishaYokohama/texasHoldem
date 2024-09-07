@@ -1,7 +1,10 @@
-"use client";
+// NextRoundDisplay.tsx
 
+"use client";
 import React from 'react';
 
+// Компонент отображения начала нового раунда
+// 新しいラウンド開始表示コンポーネント
 const NextRoundDisplay: React.FC = () => {
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50">

@@ -1,3 +1,5 @@
+// Table.tsx
+
 import React from 'react';
 import Card from './Card';
 import { Card as CardType } from '../../utils/PokerLogic';
@@ -8,14 +10,18 @@ interface TableProps {
   sidePots: Array<{ amount: number; players: number[] }>;
 }
 
-const Table: React.FC<TableProps> = ({ communityCards, mainPot, sidePots }) => {
+// Компонент игрового стола
+// ゲームテーブルコンポーネント
+const Table: React.FC<TableProps> = React.memo(({ communityCards, mainPot, sidePots }) => {
   return (
     <div className="absolute inset-0 m-auto w-3/4 h-1/2 bg-green-700 rounded-full border-8 border-brown-600 flex flex-col items-center justify-center shadow-xl">
-      <div className="flex justify-center mb-4 space-x-2">
-        {communityCards.map((card, index) => (
-          <Card key={index} card={card} />
-        ))}
-      </div>
+      {communityCards.length > 0 && (
+        <div className="flex justify-center mb-4 space-x-2">
+          {communityCards.map((card, index) => (
+            <Card key={index} card={card} />
+          ))}
+        </div>
+      )}
       <div className="text-white text-3xl font-bold bg-black bg-opacity-50 px-4 py-2 rounded">
         Main Pot: ${mainPot}
       </div>
@@ -26,6 +32,6 @@ const Table: React.FC<TableProps> = ({ communityCards, mainPot, sidePots }) => {
       ))}
     </div>
   );
-};
+});
 
 export default Table;

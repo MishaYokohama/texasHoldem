@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+// Player.tsx
+
+import React, { useState, useEffect, useCallback } from 'react';
 import { Player as PlayerType } from '../../utils/PokerLogic';
 import Card from './Card';
 
@@ -11,6 +13,8 @@ interface PlayerProps {
   maxBet: number;
 }
 
+// Компонент игрока
+// プレイヤーコンポーネント
 const Player: React.FC<PlayerProps> = ({ player, position, isCurrentPlayer, onAction, showCards, maxBet }) => {
   const [raiseAmount, setRaiseAmount] = useState(maxBet * 2);
 
@@ -18,18 +22,24 @@ const Player: React.FC<PlayerProps> = ({ player, position, isCurrentPlayer, onAc
     setRaiseAmount(Math.max(maxBet * 2, player.bet * 2));
   }, [maxBet, player.bet]);
 
-  const handleCall = () => {
-    const callAmount = maxBet - player.bet;
+  // Обработчик для действия "колл"
+  // コールアクションのハンドラー
+  const handleCall = useCallback(() => {
+    const callAmount = Math.min(maxBet - player.bet, player.chips);
     onAction('call', callAmount);
-  };
+  }, [maxBet, player.bet, player.chips, onAction]);
 
-  const handleRaise = () => {
+  // Обработчик для действия "рейз"
+  // レイズアクションのハンドラー
+  const handleRaise = useCallback(() => {
     onAction('raise', raiseAmount);
-  };
+  }, [raiseAmount, onAction]);
 
-  const handleAllIn = () => {
+  // Обработчик для действия "олл-ин"
+  // オールインアクションのハンドラー
+  const handleAllIn = useCallback(() => {
     onAction('allIn', player.chips);
-  };
+  }, [player.chips, onAction]);
 
   return (
     <div className="absolute transform -translate-x-1/2 -translate-y-1/2" style={{ top: position.top, left: position.left }}>
@@ -75,4 +85,4 @@ const Player: React.FC<PlayerProps> = ({ player, position, isCurrentPlayer, onAc
   );
 };
 
-export default Player;
+export default React.memo(Player);

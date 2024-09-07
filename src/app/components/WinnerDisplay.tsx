@@ -1,5 +1,6 @@
-"use client";
+// WinnerDisplay.tsx
 
+"use client";
 import React from 'react';
 import { Player } from '../../utils/PokerLogic';
 
@@ -8,7 +9,9 @@ interface WinnerDisplayProps {
   winAmount: number;
 }
 
-const WinnerDisplay: React.FC<WinnerDisplayProps> = ({ winners, winAmount }) => {
+// Компонент отображения победителей
+// 勝者表示コンポーネント
+const WinnerDisplay: React.FC<WinnerDisplayProps> = React.memo(({ winners, winAmount }) => {
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50">
       <div className="bg-white rounded-lg p-8 text-center">
@@ -33,6 +36,6 @@ const WinnerDisplay: React.FC<WinnerDisplayProps> = ({ winners, winAmount }) => 
       </div>
     </div>
   );
-};
+});
 
 export default WinnerDisplay;
