@@ -1,36 +1,87 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## 使用技術
 
-## Getting Started
+使用ライブラリ：
 
-First, run the development server:
+1. React (React.js) 
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+2. TypeScript
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+3. Tailwind
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-## Learn More
+## 実装された機能
 
-To learn more about Next.js, take a look at the following resources:
+- プレイヤーとボットとの対戦
+- フロップ、ターン、リバーの各ラウンドの実装
+- ベット、コール、レイズ、フォールドなどのアクション
+- 勝者の判定とチップの分配
+- ゲームオーバー条件とリスタート機能
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-## Deploy on Vercel
+## 実装上の課題と特徴
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. 状態管理：
+- 複雑なゲーム状態を管理するために、Reactのusestate、useEffect、useMemoなどのフックを効果的に活用しました。
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+2. ボットのロジック：
+- Random性に基づいています。
+
+3. 非同期処理：
+- カードの配布やプレイヤーのアクションなど、ゲームの進行を自然に見せるためにsetTimeoutを使用しました。
+
+4. エッジケースの処理：
+- オールインやサイドポットなど、特殊なケースの処理に注意を払いました。
+
+5. パフォーマンス最適化：
+- 不要な再レンダリングを避けるため、useMemoやuseCallbackを適切に使用しました。
+
+
+
+## 特定の関数使用の根拠：
+
+  1. useState
+    用途：コンポーネントの状態管理
+    理由：時間とともに変化するデータを保存・更新するのに適しているため
+
+  2. useEffect
+    用途：コンポーネントの副作用処理
+    理由：ゲームの初期化やボットの行動など、レンダリング後の処理を行うのに適しているため
+
+  3. useMemo
+    用途：計算結果のメモ化
+    理由：不要な再計算を避け、パフォーマンスを向上させるため
+
+  4. useCallback
+    用途：関数のメモ化
+    理由：子コンポーネントの不要な再レンダリングを防ぎ、パフォーマンスを最適化するため
+
+  5. setTimeout
+    用途：遅延処理の実装
+    理由：ゲームの動きをより自然に見せるため、アクション間に適切な間隔を設けるため
+
+  6. Math.random()
+    用途：乱数生成
+    理由：ボットの行動決定やカードのシャッフルなど、ゲームにランダム性を持たせるため
+
+
+
+## セットアップと実行手順
+
+1. リポジトリをクローンします：
+  git clone https://github.com/MishaYokohama/texasHoldem.git
+
+2. プロジェクトディレクトリに移動します：
+  cd texas-holdem-poker
+
+3. 依存関係をインストールします：
+    npm install
+
+4. 開発サーバーを起動します：
+    npm run dev
+
+5. ブラウザで `http://localhost:3000` を開きます。
+
+
+
